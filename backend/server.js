@@ -3,10 +3,14 @@ const nodemailer = require('nodemailer');
 const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const FRONTEND_DIR = fs.existsSync(path.join(__dirname, '../frontend/index.html'))
+    ? path.join(__dirname, '../frontend')
+    : path.join(__dirname, '..');
 
 // Setup Multer for in-memory file uploads (max 10MB)
 const upload = multer({
@@ -18,6 +22,7 @@ const upload = multer({
 app.use(cors());
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
+app.use(express.static(FRONTEND_DIR));
 
 // Persistent Nodemailer Transporter with Connection Pooling
 const emailUser = process.env.EMAIL_USER;
@@ -60,8 +65,12 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
-// Root route: API Information
+// Root route: API Information or Frontend preview
 app.get('/', (req, res) => {
+    const indexPath = path.join(FRONTEND_DIR, 'index.html');
+    if (req.accepts('html') && fs.existsSync(indexPath)) {
+        return res.sendFile(indexPath);
+    }
     res.json({
         status: 'online',
         service: 'Portfolio Contact API',

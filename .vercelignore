@@ -1,4 +1,6 @@
 frontend/
+index.html
+*.pdf
+*.png
 .git/
 .env
-

@@ -2034,8 +2034,14 @@
             entries.forEach(e => {
                 if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
             });
-        }, { threshold: .15, rootMargin: "0px 0px -40px 0px" });
+        }, { threshold: .05, rootMargin: "0px 0px 40px 0px" });
         $$("[data-reveal]").forEach(el => io.observe(el));
+
+        // If page loaded with a hash (e.g. #contact), immediately reveal its content
+        if (location.hash) {
+            const hSec = document.getElementById(location.hash.slice(1));
+            if (hSec) $$("[data-reveal]", hSec).forEach(el => el.classList.add("in"));
+        }
 
         /* ============ scrollspy: position-based + click lock ============ */
         /* Highlights exactly one section: the last one whose top has crossed the
@@ -2067,11 +2073,16 @@
             updateSpy();
         };
 
-        /* on click: highlight the destination immediately and hold it until the
+        /* on click: highlight the destination immediately, reveal its elements, and hold it until the
            smooth scroll finishes (scrollend where supported, timeout otherwise) */
         navAnchors.forEach(a => {
             a.addEventListener("click", () => {
-                setActive(a.getAttribute("href").slice(1));
+                const targetId = a.getAttribute("href").slice(1);
+                setActive(targetId);
+                const targetSec = document.getElementById(targetId);
+                if (targetSec) {
+                    $$("[data-reveal]", targetSec).forEach(el => el.classList.add("in"));
+                }
                 clearTimeout(spyLock);
                 spyLock = setTimeout(unlockSpy, 1200);
                 document.addEventListener("scrollend", unlockSpy, { once: true });
