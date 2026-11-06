@@ -35,14 +35,76 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
-function setCorsHeaders(res) {
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-    res.setHeader(
-        'Access-Control-Allow-Headers',
-        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
-    );
+function isOriginAllowed(origin) {
+    if (!origin) return true; // Direct, server-to-server, curl, or same-origin requests
+
+    try {
+        const url = new URL(origin);
+        const hostname = url.hostname.toLowerCase();
+        const originClean = `${url.protocol}//${url.host}`.toLowerCase();
+
+        // Restricted to your domain: portfolio.ananya.pal.in
+        if (hostname === 'portfolio.ananya.pal.in') {
+            return true;
+        }
+
+        // Custom allowed origins from environment variable
+        const envOrigins = (process.env.ALLOWED_ORIGINS || '')
+            .split(',')
+            .map(o => o.trim().toLowerCase())
+            .filter(Boolean);
+
+        for (const item of envOrigins) {
+            if (item.startsWith('http://') || item.startsWith('https://')) {
+                try {
+                    const itemUrl = new URL(item);
+                    if (`${itemUrl.protocol}//${itemUrl.host}`.toLowerCase() === originClean) {
+                        return true;
+                    }
+                } catch {
+                    if (item.replace(/\/+$/, '') === originClean) return true;
+                }
+            } else {
+                if (hostname === item.replace(/\/+$/, '')) {
+                    return true;
+                }
+            }
+        }
+
+        // Allow localhost and 127.0.0.1 for local development
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            if (process.env.NODE_ENV !== 'production' || process.env.ALLOW_LOCAL_DEV === 'true') {
+                return true;
+            }
+        }
+    } catch {
+        return false;
+    }
+
+    return false;
+}
+
+function handleCors(req, res) {
+    const origin = req.headers.origin;
+
+    if (!origin) {
+        return true;
+    }
+
+    if (isOriginAllowed(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
+        res.setHeader(
+            'Access-Control-Allow-Headers',
+            'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
+        );
+        res.setHeader('Access-Control-Max-Age', '86400');
+        res.setHeader('Vary', 'Origin');
+        return true;
+    }
+
+    return false;
 }
 
 async function parseBody(req, res) {
@@ -80,7 +142,14 @@ async function parseBody(req, res) {
 }
 
 async function handler(req, res) {
-    setCorsHeaders(res);
+    const originAllowed = handleCors(req, res);
+
+    if (!originAllowed) {
+        return res.status(403).json({
+            success: false,
+            error: 'Access blocked by CORS policy: origin not allowed.'
+        });
+    }
 
     // Handle preflight CORS OPTIONS request
     if (req.method === 'OPTIONS') {

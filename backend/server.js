@@ -18,8 +18,83 @@ const upload = multer({
     limits: { fileSize: 10 * 1024 * 1024 }
 });
 
+// CORS Origin Validation - Restrict access to portfolio domain
+function isOriginAllowed(origin) {
+    if (!origin) return true; // Direct, server-to-server, curl, or same-origin requests
+
+    try {
+        const url = new URL(origin);
+        const hostname = url.hostname.toLowerCase();
+        const originClean = `${url.protocol}//${url.host}`.toLowerCase();
+
+        // Restricted to your domain: portfolio.ananya.pal.in
+        if (hostname === 'portfolio.ananya.pal.in') {
+            return true;
+        }
+
+        // Custom allowed origins from environment variable
+        const envOrigins = (process.env.ALLOWED_ORIGINS || '')
+            .split(',')
+            .map(o => o.trim().toLowerCase())
+            .filter(Boolean);
+
+        for (const item of envOrigins) {
+            if (item.startsWith('http://') || item.startsWith('https://')) {
+                try {
+                    const itemUrl = new URL(item);
+                    if (`${itemUrl.protocol}//${itemUrl.host}`.toLowerCase() === originClean) {
+                        return true;
+                    }
+                } catch {
+                    if (item.replace(/\/+$/, '') === originClean) return true;
+                }
+            } else {
+                if (hostname === item.replace(/\/+$/, '')) {
+                    return true;
+                }
+            }
+        }
+
+        // Allow localhost and 127.0.0.1 for local development
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            if (process.env.NODE_ENV !== 'production' || process.env.ALLOW_LOCAL_DEV === 'true') {
+                return true;
+            }
+        }
+    } catch {
+        return false;
+    }
+
+    return false;
+}
+
+const corsOptions = {
+    origin: function (origin, callback) {
+        if (isOriginAllowed(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Access blocked by CORS policy: origin not allowed.'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: [
+        'X-CSRF-Token',
+        'X-Requested-With',
+        'Accept',
+        'Accept-Version',
+        'Content-Length',
+        'Content-MD5',
+        'Content-Type',
+        'Date',
+        'X-Api-Version',
+        'Authorization'
+    ],
+    maxAge: 86400
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.use(express.static(FRONTEND_DIR));
@@ -274,8 +349,14 @@ Tip: You can hit 'Reply' to respond directly to ${email}`;
 app.post('/api/contact', upload.single('attachment'), handleContact);
 app.post('/', upload.single('attachment'), handleContact);
 
-// Multer error handling (e.g. file too large)
+// Multer & CORS error handling
 app.use((err, req, res, next) => {
+    if (err && err.message && err.message.includes('CORS policy')) {
+        return res.status(403).json({
+            success: false,
+            error: err.message
+        });
+    }
     if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
         return res.status(400).json({
             success: false,
