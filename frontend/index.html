@@ -918,11 +918,27 @@
             padding: clamp(84px, 12vw, 140px) 0 40px
         }
 
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: clamp(36px, 5vw, 68px);
+            align-items: start;
+            margin-bottom: clamp(48px, 7vw, 76px);
+        }
+
+        .contact-desc {
+            color: var(--ink-2);
+            font-size: 1.05rem;
+            margin-top: 22px;
+            max-width: 44ch;
+            line-height: 1.6;
+        }
+
         .foot-title {
             font-family: var(--font-display);
             font-weight: 350;
-            font-size: clamp(2.5rem, 7vw, 5.4rem);
-            line-height: 1.05;
+            font-size: clamp(2.4rem, 4.5vw, 4.2rem);
+            line-height: 1.08;
             letter-spacing: -.02em
         }
 
@@ -936,12 +952,247 @@
             color: var(--accent)
         }
 
+        /* contact form — sleek, brief, matches design system */
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: clamp(22px, 3.2vw, 32px);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: color-mix(in srgb, var(--accent) 3.5%, var(--bg));
+            box-shadow: 0 12px 32px -12px rgba(26, 25, 20, .06);
+            transition: border-color .3s var(--ease), box-shadow .3s var(--ease);
+        }
+
+        html.dark .contact-form {
+            background: color-mix(in srgb, var(--accent) 5.5%, var(--bg));
+            box-shadow: 0 14px 36px -12px rgba(0, 0, 0, .35);
+        }
+
+        .contact-form:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 14px 36px -10px rgba(227, 155, 51, .2);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-family: var(--font-mono);
+            font-size: .68rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--ink-2);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 11px 15px;
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            background: var(--bg);
+            color: var(--ink);
+            font-family: var(--font-body);
+            font-size: .92rem;
+            line-height: 1.45;
+            transition: border-color .25s var(--ease), box-shadow .25s var(--ease);
+            box-sizing: border-box;
+        }
+
+        .form-input::placeholder {
+            color: var(--ink-3);
+            font-size: .88rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(227, 155, 51, 0.16);
+        }
+
+        html.dark .form-input:focus {
+            box-shadow: 0 0 0 3px rgba(242, 177, 77, 0.2);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 82px;
+        }
+
+        .form-label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .form-label-opt {
+            font-size: .62rem;
+            color: var(--ink-3);
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        /* file attachment dropzone */
+        .file-zone {
+            position: relative;
+            width: 100%;
+        }
+
+        .file-input-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .file-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 9px 13px;
+            border-radius: 10px;
+            border: 1px dashed var(--line);
+            background: var(--bg);
+            cursor: pointer;
+            transition: border-color .25s var(--ease), background .25s var(--ease);
+            user-select: none;
+        }
+
+        .file-trigger:hover,
+        .file-zone.dragover .file-trigger {
+            border-color: var(--accent);
+            background: color-mix(in srgb, var(--accent) 4%, var(--bg));
+        }
+
+        .file-trigger-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .file-trigger-icon {
+            font-size: 1rem;
+            color: var(--accent);
+            line-height: 1;
+        }
+
+        .file-trigger-text {
+            font-size: .84rem;
+            color: var(--ink-2);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-browse-badge {
+            font-size: .65rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: color-mix(in srgb, var(--accent) 12%, var(--bg));
+            color: var(--accent);
+            border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+
+        .file-preview {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+            background: color-mix(in srgb, var(--accent) 6%, var(--bg));
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .file-name {
+            font-size: .84rem;
+            font-weight: 500;
+            color: var(--ink);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-size {
+            font-size: .68rem;
+            color: var(--ink-2);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .file-remove-btn {
+            background: none;
+            border: none;
+            padding: 4px 8px;
+            color: var(--ink-2);
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: .88rem;
+            line-height: 1;
+            transition: color .2s, background .2s;
+        }
+
+        .file-remove-btn:hover {
+            color: #d9383a;
+            background: rgba(217, 56, 58, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+
+        .form-submit {
+            padding: 12px 24px;
+            cursor: pointer;
+        }
+
+        .form-hint {
+            font-size: .66rem;
+            color: var(--ink-3);
+            letter-spacing: .06em;
+            transition: color .3s;
+        }
+
         .foot-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: clamp(16px, 3vw, 32px);
-            margin-top: clamp(56px, 8vw, 88px);
-            padding-top: 8px
+            margin-top: 0;
+            padding-top: clamp(24px, 4vw, 36px);
+            border-top: 1px solid var(--line-soft);
         }
 
         .foot-link {
@@ -1016,6 +1267,16 @@
                 justify-self: center;
                 width: min(80vw, 310px);
                 margin: 16px auto 0
+            }
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+                gap: 36px;
+                margin-bottom: 40px;
+            }
+
+            .contact-desc {
+                max-width: 100%;
             }
 
             .about-grid,
@@ -1166,6 +1427,25 @@
                 grid-template-columns: 1fr;
                 gap: 4px;
                 padding: 14px 0
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .form-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .form-submit {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .form-hint {
+                text-align: center;
             }
 
             .foot-title {
@@ -1602,10 +1882,73 @@
     <!-- ================= CONTACT ================= -->
     <footer id="contact">
         <div class="container">
-            <h2 class="foot-title" data-reveal>
-                <span class="ft-block">Let's build something</span>
-                <em class="ft-block">worth remembering.</em>
-            </h2>
+            <div class="contact-grid">
+                <div class="contact-intro">
+                    <h2 class="foot-title" data-reveal>
+                        <span class="ft-block">Let's build something</span>
+                        <em class="ft-block">worth remembering.</em>
+                    </h2>
+                    <p class="contact-desc" data-reveal style="--d:.08s">
+                        Have an idea, project inquiry, or just want to connect? Send a note directly to my inbox.
+                    </p>
+                </div>
+
+                <form class="contact-form" id="contact-form" data-reveal style="--d:.14s">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cf-name" class="form-label mono">Name</label>
+                            <input type="text" id="cf-name" name="name" class="form-input" placeholder="Your name" required autocomplete="name" />
+                        </div>
+                        <div class="form-group">
+                            <label for="cf-mail" class="form-label mono">Mail ID</label>
+                            <input type="email" id="cf-mail" name="email" class="form-input" placeholder="you@domain.com" required autocomplete="email" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cf-subject" class="form-label mono">Subject</label>
+                        <input type="text" id="cf-subject" name="subject" class="form-input" placeholder="Project / Say Hello" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cf-msg" class="form-label mono">Message</label>
+                        <textarea id="cf-msg" name="message" class="form-input form-textarea" rows="3" placeholder="Tell me about what you have in mind..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-label-row">
+                            <label for="cf-file" class="form-label mono">Attachment</label>
+                            <span class="form-label-opt mono">Optional · Max 10MB</span>
+                        </div>
+                        <div class="file-zone" id="file-zone">
+                            <input type="file" id="cf-file" name="attachment" class="file-input-hidden" accept=".pdf,.doc,.docx,.txt,.rtf,.png,.jpg,.jpeg,.gif,.webp,.zip,.rar" />
+                            <label for="cf-file" class="file-trigger" id="file-trigger">
+                                <div class="file-trigger-content">
+                                    <span class="file-trigger-icon">📎</span>
+                                    <span class="file-trigger-text" id="file-trigger-text">Attach file (PDF, image, doc, zip)</span>
+                                </div>
+                                <span class="file-browse-badge mono">Browse</span>
+                            </label>
+                            <div class="file-preview" id="file-preview" style="display:none;">
+                                <div class="file-info">
+                                    <span class="file-trigger-icon">📄</span>
+                                    <span class="file-name" id="file-name">filename.pdf</span>
+                                    <span class="file-size mono" id="file-size">1.2 MB</span>
+                                </div>
+                                <button type="button" class="file-remove-btn" id="file-remove-btn" title="Remove attachment">✕</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn solid form-submit">
+                            <span>Send Message</span>
+                            <span class="arr arr-up">↗</span>
+                        </button>
+                        <span class="form-hint mono" id="form-hint">Direct to ananya.uem69@gmail.com</span>
+                    </div>
+                </form>
+            </div>
 
             <div class="foot-grid" data-reveal style="--d:.16s">
                 <a class="foot-link" href="https://linkedin.com/in/artedeananya" target="_blank" rel="noopener">
@@ -1758,6 +2101,165 @@
         if (first) {
             first.classList.add("open");
             $(".work-head", first).setAttribute("aria-expanded", "true");
+        }
+
+        /* contact form & attachment handler -> POST /api/contact */
+        const contactForm = $("#contact-form");
+        const fileInput = $("#cf-file");
+        const fileTrigger = $("#file-trigger");
+        const filePreview = $("#file-preview");
+        const fileNameEl = $("#file-name");
+        const fileSizeEl = $("#file-size");
+        const fileRemoveBtn = $("#file-remove-btn");
+        const fileZone = $("#file-zone");
+
+        function resetAttachment() {
+            if (fileInput) fileInput.value = "";
+            if (filePreview) filePreview.style.display = "none";
+            if (fileTrigger) fileTrigger.style.display = "flex";
+        }
+
+        if (fileInput) {
+            fileInput.addEventListener("change", () => {
+                const file = fileInput.files?.[0];
+                if (!file) {
+                    resetAttachment();
+                    return;
+                }
+                // Check 10MB limit
+                if (file.size > 10 * 1024 * 1024) {
+                    alert("File size exceeds 10MB. Please select a smaller file.");
+                    resetAttachment();
+                    return;
+                }
+                if (fileNameEl) fileNameEl.textContent = file.name;
+                if (fileSizeEl) {
+                    const mb = file.size / (1024 * 1024);
+                    fileSizeEl.textContent = mb >= 1 ? mb.toFixed(1) + " MB" : Math.round(file.size / 1024) + " KB";
+                }
+                if (fileTrigger) fileTrigger.style.display = "none";
+                if (filePreview) filePreview.style.display = "flex";
+            });
+        }
+
+        if (fileRemoveBtn) {
+            fileRemoveBtn.addEventListener("click", e => {
+                e.preventDefault();
+                resetAttachment();
+            });
+        }
+
+        // Drag & drop support
+        if (fileZone) {
+            ["dragenter", "dragover"].forEach(eventName => {
+                fileZone.addEventListener(eventName, e => {
+                    e.preventDefault();
+                    fileZone.classList.add("dragover");
+                }, false);
+            });
+            ["dragleave", "drop"].forEach(eventName => {
+                fileZone.addEventListener(eventName, e => {
+                    e.preventDefault();
+                    fileZone.classList.remove("dragover");
+                }, false);
+            });
+            fileZone.addEventListener("drop", e => {
+                const dt = e.dataTransfer;
+                if (dt && dt.files && dt.files.length) {
+                    fileInput.files = dt.files;
+                    fileInput.dispatchEvent(new Event("change"));
+                }
+            }, false);
+        }
+
+        if (contactForm) {
+            contactForm.addEventListener("submit", async e => {
+                e.preventDefault();
+                const submitBtn = contactForm.querySelector(".form-submit");
+                const submitBtnText = submitBtn ? submitBtn.querySelector("span:first-child") : null;
+                const hint = $("#form-hint");
+
+                const name = ($("#cf-name")?.value || "").trim();
+                const email = ($("#cf-mail")?.value || "").trim();
+                const subject = ($("#cf-subject")?.value || "").trim();
+                const message = ($("#cf-msg")?.value || "").trim();
+                const file = fileInput?.files?.[0];
+
+                if (!name || !email || !message) {
+                    if (hint) hint.textContent = "Please fill in all required fields.";
+                    return;
+                }
+
+                // Instant UI feedback
+                if (submitBtn) submitBtn.disabled = true;
+                if (submitBtnText) submitBtnText.textContent = "Sending...";
+                if (hint) {
+                    hint.style.color = "var(--accent)";
+                    hint.textContent = "Delivering your note to Ananya...";
+                }
+
+                try {
+                    const formData = new FormData();
+                    formData.append("name", name);
+                    formData.append("email", email);
+                    formData.append("subject", subject);
+                    formData.append("message", message);
+                    if (file) {
+                        formData.append("attachment", file);
+                    }
+
+                    const isLocalDevOtherPort = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port && window.location.port !== "3000";
+                    const apiUrl = isLocalDevOtherPort ? "http://localhost:3000/api/contact" : "/api/contact";
+
+                    const response = await fetch(apiUrl, {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    const data = await response.json().catch(() => ({}));
+
+                    if (response.ok && data.success) {
+                        contactForm.reset();
+                        resetAttachment();
+                        if (submitBtnText) submitBtnText.textContent = "✓ Sent!";
+                        if (hint) {
+                            hint.style.color = "var(--accent)";
+                            hint.textContent = "✓ Sent instantly! Thanks for reaching out.";
+                        }
+                        setTimeout(() => {
+                            if (submitBtn) submitBtn.disabled = false;
+                            if (submitBtnText) submitBtnText.textContent = "Send Message";
+                            if (hint) {
+                                hint.style.color = "";
+                                hint.textContent = "Direct to ananya.uem69@gmail.com";
+                            }
+                        }, 4000);
+                        return;
+                    }
+                    throw new Error(data.error || "Server response was not ok");
+                } catch (err) {
+                    console.warn("Backend unavailable, falling back to mail client:", err);
+                    if (hint) {
+                        hint.style.color = "var(--accent)";
+                        hint.textContent = "Opening your mail client instead...";
+                    }
+                    const emailTo = "ananya.uem69@gmail.com";
+                    const emailSubject = encodeURIComponent(subject ? `[Portfolio] ${subject}` : "Portfolio Inquiry");
+                    const emailBody = encodeURIComponent(
+                        `From: ${name} (${email})\n\nMessage:\n${message}${file ? `\n\n[Note: Please attach "${file.name}" to this email]` : ""}\n\n---\nSent via ananya.uem69@gmail.com`
+                    );
+                    window.location.href = `mailto:${emailTo}?subject=${emailSubject}&body=${emailBody}`;
+
+                    setTimeout(() => {
+                        if (submitBtn) submitBtn.disabled = false;
+                        if (submitBtnText) submitBtnText.textContent = "Send Message";
+                        if (hint) {
+                            hint.style.color = "";
+                            hint.textContent = "Direct to ananya.uem69@gmail.com";
+                        }
+                    }, 4000);
+                }
+            });
         }
 
         /* cursor follower (fine pointers only) */

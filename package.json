@@ -1,0 +1,10 @@
+{
+  "name": "ananya-portfolio",
+  "version": "1.0.0",
+  "description": "Ananya Pal - Portfolio & Contact Service",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node --watch backend/server.js"
+  }
+}
+
