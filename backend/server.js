@@ -27,8 +27,14 @@ function isOriginAllowed(origin) {
         const hostname = url.hostname.toLowerCase();
         const originClean = `${url.protocol}//${url.host}`.toLowerCase();
 
-        // Restricted to your domain: portfolio.ananya.pal.in
-        if (hostname === 'portfolio.ananya.pal.in') {
+        // Restricted to your domain: portfolio.ananyapal.in
+        const allowedDomains = [
+            'portfolio.ananyapal.in',
+            'www.portfolio.ananyapal.in',
+            'ananyapal.in'
+        ];
+
+        if (allowedDomains.includes(hostname)) {
             return true;
         }
 
