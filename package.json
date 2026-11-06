@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "description": "Ananya Pal - Portfolio & Contact Service",
   "scripts": {
+    "build": "echo 'Static build ready'",
     "start": "node backend/server.js",
     "dev": "node --watch backend/server.js"
+  },
+  "dependencies": {
+    "nodemailer": "^6.10.0"
   }
 }
-

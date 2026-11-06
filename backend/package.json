@@ -4,6 +4,7 @@
   "description": "Portfolio contact backend service for Ananya Pal",
   "main": "server.js",
   "scripts": {
+    "build": "echo 'Backend build ready'",
     "start": "node server.js",
     "dev": "node --watch server.js"
   },
