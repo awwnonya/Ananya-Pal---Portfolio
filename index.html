@@ -771,6 +771,7 @@
 
         /* desktop pointer hover */
         @media (hover: hover) and (pointer: fine) {
+
             .work-head:hover .w-title,
             .work-item:hover .w-title {
                 color: var(--accent);
@@ -1352,6 +1353,7 @@
         }
 
         @media (max-width:720px) {
+
             /* ensure safe symmetrical padding for mobile view so content never touches the edge */
             .container {
                 width: 100%;
@@ -1377,7 +1379,8 @@
 
             .form-input,
             .form-textarea {
-                font-size: 16px; /* Prevents iOS auto-zoom on mobile devices */
+                font-size: 16px;
+                /* Prevents iOS auto-zoom on mobile devices */
             }
 
             .form-actions {
@@ -1712,8 +1715,8 @@
                         then build them with React. Currently designing enterprise &amp; AI products at Alpha Torana.
                     </p>
                     <div class="hero-cta" data-reveal style="--d:.24s">
-                        <a class="btn solid" href="https://behance.net/artedeananya" target="_blank"
-                            rel="noopener">View My Work <span class="arr arr-up">↗</span></a>
+                        <a class="btn solid" href="https://behance.net/artedeananya" target="_blank" rel="noopener">View
+                            My Work <span class="arr arr-up">↗</span></a>
                         <!-- Keep your resume PDF in the same folder as this file (named resume.pdf), or update the href below -->
                         <a class="btn ghost" href="Ananya Pal_Resume.pdf" target="_blank" rel="noopener noreferrer">View
                             Resume <span class="arr">↗</span></a>
@@ -2073,22 +2076,26 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="cf-name" class="form-label mono">Name</label>
-                            <input type="text" id="cf-name" name="name" class="form-input" placeholder="Your name" required autocomplete="name" />
+                            <input type="text" id="cf-name" name="name" class="form-input" placeholder="Your name"
+                                required autocomplete="name" />
                         </div>
                         <div class="form-group">
                             <label for="cf-mail" class="form-label mono">Mail ID</label>
-                            <input type="email" id="cf-mail" name="email" class="form-input" placeholder="you@domain.com" required autocomplete="email" />
+                            <input type="email" id="cf-mail" name="email" class="form-input"
+                                placeholder="you@domain.com" required autocomplete="email" />
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="cf-subject" class="form-label mono">Subject</label>
-                        <input type="text" id="cf-subject" name="subject" class="form-input" placeholder="Project / Say Hello" required />
+                        <input type="text" id="cf-subject" name="subject" class="form-input"
+                            placeholder="Project / Say Hello" required />
                     </div>
 
                     <div class="form-group">
                         <label for="cf-msg" class="form-label mono">Message</label>
-                        <textarea id="cf-msg" name="message" class="form-input form-textarea" rows="3" placeholder="Tell me about what you have in mind..." required></textarea>
+                        <textarea id="cf-msg" name="message" class="form-input form-textarea" rows="3"
+                            placeholder="Tell me about what you have in mind..." required></textarea>
                     </div>
 
                     <div class="form-group">
@@ -2097,11 +2104,13 @@
                             <span class="form-label-opt mono">Optional · Max 10MB</span>
                         </div>
                         <div class="file-zone" id="file-zone">
-                            <input type="file" id="cf-file" name="attachment" class="file-input-hidden" accept=".pdf,.doc,.docx,.txt,.rtf,.png,.jpg,.jpeg,.gif,.webp,.zip,.rar" />
+                            <input type="file" id="cf-file" name="attachment" class="file-input-hidden"
+                                accept=".pdf,.doc,.docx,.txt,.rtf,.png,.jpg,.jpeg,.gif,.webp,.zip,.rar" />
                             <label for="cf-file" class="file-trigger" id="file-trigger">
                                 <div class="file-trigger-content">
                                     <span class="file-trigger-icon">📎</span>
-                                    <span class="file-trigger-text" id="file-trigger-text">Attach file (PDF, image, doc, zip)</span>
+                                    <span class="file-trigger-text" id="file-trigger-text">Attach file (PDF, image, doc,
+                                        zip)</span>
                                 </div>
                                 <span class="file-browse-badge mono">Browse</span>
                             </label>
@@ -2111,7 +2120,8 @@
                                     <span class="file-name" id="file-name">filename.pdf</span>
                                     <span class="file-size mono" id="file-size">1.2 MB</span>
                                 </div>
-                                <button type="button" class="file-remove-btn" id="file-remove-btn" title="Remove attachment">✕</button>
+                                <button type="button" class="file-remove-btn" id="file-remove-btn"
+                                    title="Remove attachment">✕</button>
                             </div>
                         </div>
                     </div>
@@ -2173,7 +2183,7 @@
 
             <div class="foot-bottom mono">
                 <span>© <span id="year"></span> Ananya Pal</span>
-                <span>Designed &amp; built with care</span>
+                <!--<span>Designed &amp; built with care</span>-->
                 <a class="top-link" href="#top">Back to top ↑</a>
             </div>
         </div>
@@ -2293,7 +2303,7 @@
         }
 
         /* enable :active hover/tap styles on touch devices (iOS Safari) */
-        document.addEventListener("touchstart", () => {}, { passive: true });
+        document.addEventListener("touchstart", () => { }, { passive: true });
 
         /* contact form & attachment handler -> POST /api/contact */
         const contactForm = $("#contact-form");
