@@ -2208,9 +2208,8 @@
                         formData.append("attachment", file);
                     }
 
-                    // Vercel Backend URL: Paste your deployed Vercel backend URL here (e.g. "https://your-backend.vercel.app")
-                    // If left empty (""), it defaults to "/api/contact" (or http://localhost:3000/api/contact during local development)
-                    const VERCEL_BACKEND_URL = "";
+                    // Vercel Backend URL: Connected directly to your deployed Vercel API
+                    const VERCEL_BACKEND_URL = "https://ananya-pal-portfolio-backend.vercel.app";
                     const isLocalDevOtherPort = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port && window.location.port !== "3000";
                     const apiUrl = VERCEL_BACKEND_URL
                         ? `${VERCEL_BACKEND_URL.replace(/\/+$/, "")}/api/contact`
