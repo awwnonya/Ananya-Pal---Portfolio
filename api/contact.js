@@ -1,3 +1,5 @@
 // Vercel Serverless Function entry point
-module.exports = require('../backend/api/contact.js');
+const handler = require('../backend/api/contact.js');
 
+module.exports = handler;
+module.exports.config = handler.config;

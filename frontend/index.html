@@ -2208,8 +2208,13 @@
                         formData.append("attachment", file);
                     }
 
+                    // Vercel Backend URL: Paste your deployed Vercel backend URL here (e.g. "https://your-backend.vercel.app")
+                    // If left empty (""), it defaults to "/api/contact" (or http://localhost:3000/api/contact during local development)
+                    const VERCEL_BACKEND_URL = "";
                     const isLocalDevOtherPort = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") && window.location.port && window.location.port !== "3000";
-                    const apiUrl = isLocalDevOtherPort ? "http://localhost:3000/api/contact" : "/api/contact";
+                    const apiUrl = VERCEL_BACKEND_URL
+                        ? `${VERCEL_BACKEND_URL.replace(/\/+$/, "")}/api/contact`
+                        : (isLocalDevOtherPort ? "http://localhost:3000/api/contact" : "/api/contact");
 
                     const response = await fetch(apiUrl, {
                         method: "POST",

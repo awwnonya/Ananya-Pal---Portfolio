@@ -7,7 +7,6 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const FRONTEND_DIR = path.join(__dirname, '../frontend');
 
 // Setup Multer for in-memory file uploads (max 10MB)
 const upload = multer({
@@ -19,9 +18,6 @@ const upload = multer({
 app.use(cors());
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
-
-// Serve static frontend files from frontend directory
-app.use(express.static(FRONTEND_DIR));
 
 // Persistent Nodemailer Transporter with Connection Pooling
 const emailUser = process.env.EMAIL_USER;
@@ -35,7 +31,7 @@ if (emailUser && emailPass) {
         host: process.env.SMTP_HOST || undefined,
         port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : undefined,
         secure: process.env.SMTP_SECURE === 'true',
-        pool: true, // Reuse pooled TCP/TLS connections for instant delivery
+        pool: true,
         maxConnections: 5,
         maxMessages: Infinity,
         auth: {
@@ -44,12 +40,11 @@ if (emailUser && emailPass) {
         }
     });
 
-    // Pre-warm the pooled connection on startup
     transporter.verify((err) => {
         if (err) {
             console.error('⚠️ [SMTP Verify Warning]:', err.message);
         } else {
-            console.log('✓ [SMTP Ready]: Connection pool active & pre-warmed for instant email delivery.');
+            console.log('✓ [SMTP Ready]: Connection pool active for email delivery.');
         }
     });
 }
@@ -65,6 +60,19 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
+// Root route: API Information
+app.get('/', (req, res) => {
+    res.json({
+        status: 'online',
+        service: 'Portfolio Contact API',
+        endpoints: {
+            contact: 'POST /api/contact',
+            health: 'GET /api/health'
+        },
+        documentation: 'Send a POST request with name, email, subject, message, and optional attachment.'
+    });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
     res.json({
@@ -75,8 +83,18 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// Contact form submission endpoint (supports both multipart/form-data and JSON)
-app.post('/api/contact', upload.single('attachment'), async (req, res) => {
+// Contact API info on GET
+app.get('/api/contact', (req, res) => {
+    res.json({
+        status: 'online',
+        service: 'Portfolio Contact API',
+        method: 'POST',
+        acceptedFields: ['name', 'email', 'subject', 'message', 'attachment']
+    });
+});
+
+// Contact form submission handler (supports multipart/form-data and JSON)
+const handleContact = async (req, res) => {
     const { name, email, subject, message } = req.body || {};
 
     // Basic validation
@@ -187,7 +205,7 @@ Tip: You can hit 'Reply' to respond directly to ${email}`;
 
             ${attachmentInfo ? `
             <div class="attachment-badge">
-                📎 <strong>Attached:</strong> ${escapeHtml(attachmentInfo.name)} (${escapeHtml(attachmentInfo.size)})
+                📎 <strong>Attached:</strong> ${escapeHtml(attachmentInfo.name)} (${attachmentInfo.size})
             </div>` : ''}
 
             <div class="msg-box">
@@ -203,31 +221,29 @@ Tip: You can hit 'Reply' to respond directly to ${email}`;
     </html>
     `;
 
-    // ⚡ INSTANT RESPONSE: Return success immediately so the frontend feels instantaneous!
-    res.json({
-        success: true,
-        message: 'Your message has been sent successfully!'
-    });
-
-    // Send email asynchronously in the background via persistent pre-warmed connection pool
     if (transporter) {
-        const mailOptions = {
-            from: `"Portfolio Contact Form" <${emailUser}>`,
-            to: receiverEmail,
-            replyTo: email,
-            subject: `[Portfolio] ${cleanSubject} — from ${name}`,
-            text: textContent,
-            html: htmlContent,
-            attachments: mailAttachments
-        };
-
-        transporter.sendMail(mailOptions)
-            .then(info => {
-                console.log(`⚡ [Instant Send] Email delivered to ${receiverEmail} (MsgID: ${info.messageId})`);
-            })
-            .catch(err => {
-                console.error('❌ [Background SMTP Error]:', err.message);
+        try {
+            await transporter.sendMail({
+                from: `"Portfolio Contact Form" <${emailUser}>`,
+                to: receiverEmail,
+                replyTo: email,
+                subject: `[Portfolio] ${cleanSubject} — from ${name}`,
+                text: textContent,
+                html: htmlContent,
+                attachments: mailAttachments
             });
+
+            return res.status(200).json({
+                success: true,
+                message: 'Your message has been sent successfully!'
+            });
+        } catch (err) {
+            console.error('❌ [SMTP Error]:', err.message);
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to send email. Check SMTP configuration in environment variables.'
+            });
+        }
     } else {
         // Dev mode log
         console.log('\n================ NEW PORTFOLIO MESSAGE (DEV MODE) ================');
@@ -237,8 +253,17 @@ Tip: You can hit 'Reply' to respond directly to ${email}`;
         if (attachmentInfo) console.log(`File:     ${attachmentInfo.name} (${attachmentInfo.size})`);
         console.log(`Message:\n${message}`);
         console.log('==================================================================\n');
+
+        return res.status(200).json({
+            success: true,
+            devMode: true,
+            message: 'Message received! (Dev mode active: SMTP credentials not configured).'
+        });
     }
-});
+};
+
+app.post('/api/contact', upload.single('attachment'), handleContact);
+app.post('/', upload.single('attachment'), handleContact);
 
 // Multer error handling (e.g. file too large)
 app.use((err, req, res, next) => {
@@ -251,9 +276,12 @@ app.use((err, req, res, next) => {
     next(err);
 });
 
-// Fallback route: serve index.html for any frontend navigation
-app.get('*', (req, res) => {
-    res.sendFile(path.join(FRONTEND_DIR, 'index.html'));
+// Fallback route: 404 JSON (no frontend served)
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        error: 'Route not found. Use POST /api/contact'
+    });
 });
 
 if (require.main === module) {

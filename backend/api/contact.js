@@ -1,4 +1,29 @@
 const nodemailer = require('nodemailer');
+const multer = require('multer');
+const path = require('path');
+
+// Attempt to load .env from backend folder or root
+try {
+    require('dotenv').config({ path: path.join(__dirname, '../.env') });
+    require('dotenv').config({ path: path.join(__dirname, '../../.env') });
+} catch {
+    // Ignore dotenv error in production serverless environments
+}
+
+// Multer in-memory storage for handling file uploads (up to 10MB)
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 }
+});
+
+function runMiddleware(req, res, fn) {
+    return new Promise((resolve, reject) => {
+        fn(req, res, (result) => {
+            if (result instanceof Error) return reject(result);
+            return resolve(result);
+        });
+    });
+}
 
 function escapeHtml(str) {
     if (!str) return '';
@@ -10,43 +35,94 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
-const emailUser = process.env.EMAIL_USER;
-const emailPass = (process.env.EMAIL_PASS || '').replace(/\s+/g, '');
-const receiverEmail = process.env.RECEIVER_EMAIL || emailUser || 'ananya.uem69@gmail.com';
-
-let transporter = null;
-if (emailUser && emailPass) {
-    transporter = nodemailer.createTransport({
-        service: process.env.EMAIL_SERVICE || 'gmail',
-        host: process.env.SMTP_HOST || undefined,
-        port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : undefined,
-        secure: process.env.SMTP_SECURE === 'true',
-        pool: true,
-        maxConnections: 5,
-        maxMessages: Infinity,
-        auth: {
-            user: emailUser,
-            pass: emailPass
-        }
-    });
-}
-
-module.exports = async function handler(req, res) {
-    res.setHeader('Access-Control-Allow-Credentials', true);
+function setCorsHeaders(res) {
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
     res.setHeader(
         'Access-Control-Allow-Headers',
-        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
     );
+}
 
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
+async function parseBody(req, res) {
+    // If body has already been parsed by another middleware/layer
+    if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
         return;
     }
 
+    const contentType = req.headers['content-type'] || '';
+
+    if (contentType.includes('multipart/form-data')) {
+        await runMiddleware(req, res, upload.single('attachment'));
+    } else if (contentType.includes('application/json')) {
+        const chunks = [];
+        for await (const chunk of req) {
+            chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+        }
+        const raw = Buffer.concat(chunks).toString('utf8');
+        try {
+            req.body = raw ? JSON.parse(raw) : {};
+        } catch {
+            req.body = {};
+        }
+    } else if (contentType.includes('application/x-www-form-urlencoded')) {
+        const chunks = [];
+        for await (const chunk of req) {
+            chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+        }
+        const raw = Buffer.concat(chunks).toString('utf8');
+        const querystring = require('querystring');
+        req.body = querystring.parse(raw);
+    } else {
+        req.body = req.body || {};
+    }
+}
+
+async function handler(req, res) {
+    setCorsHeaders(res);
+
+    // Handle preflight CORS OPTIONS request
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
+    // Health / service status endpoint for GET requests
+    if (req.method === 'GET') {
+        const emailUser = process.env.EMAIL_USER;
+        const receiverEmail = process.env.RECEIVER_EMAIL || emailUser || 'ananya.uem69@gmail.com';
+        return res.status(200).json({
+            status: 'online',
+            service: 'Portfolio Contact API',
+            receiver: receiverEmail,
+            endpoints: {
+                contact: 'POST /api/contact'
+            },
+            documentation: 'Send a POST request with name, email, subject, message, and optional attachment.'
+        });
+    }
+
     if (req.method !== 'POST') {
-        return res.status(405).json({ success: false, error: 'Method not allowed' });
+        return res.status(405).json({
+            success: false,
+            error: 'Method not allowed. Use POST /api/contact'
+        });
+    }
+
+    // Parse multipart/form-data or application/json body
+    try {
+        await parseBody(req, res);
+    } catch (err) {
+        if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({
+                success: false,
+                error: 'Attachment is too large. Maximum allowed size is 10MB.'
+            });
+        }
+        return res.status(400).json({
+            success: false,
+            error: 'Failed to process request data: ' + err.message
+        });
     }
 
     const { name, email, subject, message, attachment } = req.body || {};
@@ -71,7 +147,20 @@ module.exports = async function handler(req, res) {
     const mailAttachments = [];
     let attachmentInfo = null;
 
-    if (attachment && attachment.data) {
+    // Handle file from multipart/form-data (multer)
+    if (req.file) {
+        mailAttachments.push({
+            filename: req.file.originalname,
+            content: req.file.buffer,
+            contentType: req.file.mimetype
+        });
+        attachmentInfo = {
+            name: req.file.originalname,
+            size: `${(req.file.size / 1024 / 1024).toFixed(2)} MB`
+        };
+    }
+    // Handle base64 attachment from JSON payload
+    else if (attachment && attachment.data) {
         const base64Data = attachment.data.replace(/^data:[^;]+;base64,/, '');
         mailAttachments.push({
             filename: attachment.name || 'attachment',
@@ -80,7 +169,7 @@ module.exports = async function handler(req, res) {
         });
         attachmentInfo = {
             name: attachment.name || 'attachment',
-            size: 'Attached'
+            size: 'Included'
         };
     }
 
@@ -90,7 +179,7 @@ These are the details of the user:
 • Name: ${name}
 • Email: ${email}
 • Subject: ${cleanSubject}
-${attachmentInfo ? `• Attachment: ${attachmentInfo.name}\n` : ''}
+${attachmentInfo ? `• Attachment: ${attachmentInfo.name} (${attachmentInfo.size})\n` : ''}
 Message they want to send me:
 --------------------------------------------------
 ${message}
@@ -145,7 +234,7 @@ Tip: You can hit 'Reply' to respond directly to ${email}`;
 
             ${attachmentInfo ? `
             <div class="attachment-badge">
-                📎 <strong>Attached:</strong> ${escapeHtml(attachmentInfo.name)}
+                📎 <strong>Attached:</strong> ${escapeHtml(attachmentInfo.name)} (${escapeHtml(attachmentInfo.size)})
             </div>` : ''}
 
             <div class="msg-box">
@@ -161,6 +250,24 @@ Tip: You can hit 'Reply' to respond directly to ${email}`;
     </html>
     `;
 
+    const emailUser = process.env.EMAIL_USER;
+    const emailPass = (process.env.EMAIL_PASS || '').replace(/\s+/g, '');
+    const receiverEmail = process.env.RECEIVER_EMAIL || emailUser || 'ananya.uem69@gmail.com';
+
+    let transporter = null;
+    if (emailUser && emailPass) {
+        transporter = nodemailer.createTransport({
+            service: process.env.EMAIL_SERVICE || 'gmail',
+            host: process.env.SMTP_HOST || undefined,
+            port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : undefined,
+            secure: process.env.SMTP_SECURE === 'true',
+            auth: {
+                user: emailUser,
+                pass: emailPass
+            }
+        });
+    }
+
     if (transporter) {
         try {
             await transporter.sendMail({
@@ -173,7 +280,7 @@ Tip: You can hit 'Reply' to respond directly to ${email}`;
                 attachments: mailAttachments
             });
 
-            return res.json({
+            return res.status(200).json({
                 success: true,
                 message: 'Your message has been sent successfully!'
             });
@@ -185,10 +292,29 @@ Tip: You can hit 'Reply' to respond directly to ${email}`;
             });
         }
     } else {
-        return res.json({
+        // Dev mode log when credentials are not configured yet
+        console.log('\n================ NEW PORTFOLIO MESSAGE (DEV MODE) ================');
+        console.log(`To:       ${receiverEmail}`);
+        console.log(`From:     ${name} <${email}>`);
+        console.log(`Subject:  ${cleanSubject}`);
+        if (attachmentInfo) console.log(`File:     ${attachmentInfo.name} (${attachmentInfo.size})`);
+        console.log(`Message:\n${message}`);
+        console.log('==================================================================\n');
+
+        return res.status(200).json({
             success: true,
             devMode: true,
-            message: 'Message received! (Dev mode active).'
+            message: 'Message received! (Dev mode active: SMTP credentials not configured).'
         });
     }
+}
+
+// Disable default body parser so Multer can parse raw multipart stream on Vercel
+handler.config = {
+    api: {
+        bodyParser: false
+    }
 };
+
+module.exports = handler;
+module.exports.config = handler.config;
